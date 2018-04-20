@@ -4,17 +4,21 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-Future<List<Post>> fetchPost() async {
-  final response =
-  await http.get('https://jsonplaceholder.typicode.com/posts');
-  final List<dynamic> responseJson = json.decode(response.body);
-  final List<Post> posts = new List<Post>();
+class PostApi {
 
-  for (var i = 0; i == responseJson.length; i++) {
-     posts.add(new Post.fromJson(responseJson[i]));
+  Future <List<Post>> getPosts({int offset: 0}) async {
+    try {
+      final response =
+      await http.get('https://jsonplaceholder.typicode.com/posts');
+      final List<dynamic> responseJson = json.decode(response.body);
+      final List<Post> posts = responseJson.map((m) => new Post.fromJson(m)).toList();
+
+      return posts;
+    } catch (e) {
+      throw new Exception(e.toString());
+    }
   }
 
-  return posts;
 }
 
 class Post {

@@ -2,7 +2,11 @@
 
 A new Flutter application.
 
-## Getting Started
+## When you modify pubspec.yaml
 
-For help getting started with Flutter, view our online
-[documentation](https://flutter.io/).
+Reslove dependencies by
+
+    $ flutter packages get
+
+
+
