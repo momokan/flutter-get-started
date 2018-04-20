@@ -33,6 +33,20 @@ class PostsListState extends State<PostsListWidget> {
     this._loadPosts();
   }
 
+  void _loadPosts() {
+    new PostApi().getPosts().then((x) {
+      setState(() {
+        this._isError = false;
+        this._posts.insertAll(this._posts.length, x);
+      });
+    }).catchError((e) {
+      setState(() {
+        this._isError = true;
+        this._errorMessage = e.toString();
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (this._isError) {
@@ -55,37 +69,6 @@ class PostsListState extends State<PostsListWidget> {
             return _createListRow(post);
           })
       //body: _buildSuggestions(),
-    );
-  }
-
-  void _loadPosts() {
-    new PostApi().getPosts().then((x) {
-      setState(() {
-        this._isError = false;
-        this._posts.insertAll(this._posts.length, x);
-      });
-    }).catchError((e) {
-      setState(() {
-        this._isError = true;
-        this._errorMessage = e.toString();
-      });
-    });
-  }
-
-  Widget _createListView(BuildContext context, AsyncSnapshot snapshot) {
-    List<Post> values = snapshot.data;
-    return new ListView.builder(
-      itemCount: values.length,
-      itemBuilder: (BuildContext context, int index) {
-        return new Column(
-          children: <Widget>[
-            new ListTile(
-              title: new Text(values[index].title),
-            ),
-            new Divider(height: 2.0,),
-          ],
-        );
-      },
     );
   }
 
