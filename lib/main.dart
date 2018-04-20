@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_get_started/webapi.dart';
 
@@ -22,36 +23,26 @@ class PostsListWidget extends StatefulWidget {
 class PostsListState extends State<PostsListWidget> {
   final _posts = <Post>[];
   final _savedPosts = new Set<Post>();
+  final _postApi = new PostApi();
   final _biggerFont = const TextStyle(fontSize: 18.0);
-
-  String _errorMessage = "";
-  bool _isError = false;
-
-  @override
-  void initState() {
-    super.initState();
-    this._loadPosts();
-  }
-
-  void _loadPosts() {
-    new PostApi().getPosts().then((x) {
-      setState(() {
-        this._isError = false;
-        this._posts.insertAll(this._posts.length, x);
-      });
-    }).catchError((e) {
-      setState(() {
-        this._isError = true;
-        this._errorMessage = e.toString();
-      });
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    if (this._isError) {
-      return new Center(child: new Text(this._errorMessage),);
-    }
+    var futureBuilder = new FutureBuilder(
+      future: _postApi.getPosts(),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return new Text('loading...');
+          default:
+            if (snapshot.hasError)
+              return new Text('Error: ${snapshot.error}');
+            else
+              return _createListView(context, snapshot);
+        }
+      },
+    );
 
     return new Scaffold (
       appBar: new AppBar(
@@ -60,16 +51,22 @@ class PostsListState extends State<PostsListWidget> {
           new IconButton(icon: new Icon(Icons.list), onPressed: _pushSaved),
         ],
       ),
-      body: new ListView.builder(
-          padding: const EdgeInsets.all(16.0),
-          itemCount: this._posts.length,
-//          itemExtent: 300.0,
-          itemBuilder: (BuildContext context, int index) {
-            Post post = this._posts[index];
-            return _createListRow(post);
-          })
+      body: futureBuilder
       //body: _buildSuggestions(),
     );
+  }
+
+  Widget _createListView(BuildContext context, AsyncSnapshot snapshot) {
+    this._posts.addAll(snapshot.data);
+
+    return new ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemCount: this._posts.length,
+//          itemExtent: 300.0,
+        itemBuilder: (BuildContext context, int index) {
+          Post post = this._posts[index];
+          return _createListRow(post);
+        });
   }
 
   Widget _createListRow(Post post) {
